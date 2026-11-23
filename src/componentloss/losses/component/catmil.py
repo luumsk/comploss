@@ -7,8 +7,8 @@ from typing import Dict, Optional, Sequence, Union
 import torch
 import torch.nn as nn
 
-from ._utils import nnunet_ds_weights
-from .baselines import DiceCELoss
+from .._utils import nnunet_ds_weights
+from ..voxel.dice import DiceCELoss
 from .cat import ComponentAdaptiveTverskyLoss
 from .mil import SmallLesionMILLoss
 

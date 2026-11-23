@@ -1,4 +1,4 @@
-"""Command line: ``catmil losses | profile <labels_dir> | bench``."""
+"""Command line: ``componentloss losses | profile <labels_dir> | bench``."""
 from __future__ import annotations
 
 import argparse
@@ -16,7 +16,7 @@ def _load_mask(path: Path) -> np.ndarray:
         try:
             import nibabel as nib
         except ImportError as e:  # pragma: no cover
-            raise SystemExit("reading NIfTI needs nibabel: pip install 'catmil[io]'") from e
+            raise SystemExit("reading NIfTI needs nibabel: pip install 'componentloss[io]'") from e
         return np.asarray(nib.load(str(path)).dataobj) > 0
     if name.endswith(".npy"):
         return np.load(path) > 0
@@ -43,7 +43,7 @@ def cmd_profile(args) -> int:
         print(f"  {b:<7}{int(prof[f'n_{b}']):>7}  {100 * prof[f'frac_{b}']:5.1f}%")
     small = prof["frac_tiny"] + prof["frac_small"]
     print(f"lesions <= 50 voxels: {100 * small:.1f}%"
-          + ("  -> many small lesions; CATMIL is designed for this case." if small >= 0.3 else ""))
+          + ("  -> many small objects; component-aware losses are designed for this case." if small >= 0.3 else ""))
     return 0
 
 
@@ -82,7 +82,7 @@ def cmd_bench(args) -> int:
 
 
 def main(argv=None) -> int:
-    ap = argparse.ArgumentParser(prog="catmil", description=__doc__)
+    ap = argparse.ArgumentParser(prog="componentloss", description=__doc__)
     sub = ap.add_subparsers(dest="cmd", required=True)
     p = sub.add_parser("profile", help="lesion-size distribution of a folder of GT masks")
     p.add_argument("labels_dir")

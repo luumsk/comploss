@@ -3,7 +3,7 @@ import pytest
 import torch
 
 import _reference_losses as ref
-from catmil import (CCDiceCELoss, ComponentAdaptiveTverskyLoss, FocalTverskyLoss, SmallLesionMILLoss,
+from componentloss import (CCDiceCELoss, ComponentAdaptiveTverskyLoss, FocalTverskyLoss, SmallLesionMILLoss,
                     TverskyLoss)
 from conftest import make_batch
 

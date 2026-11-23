@@ -1,12 +1,12 @@
-"""Minimal plain-PyTorch training loop with CATMIL and per-term logging (synthetic data).
+"""Minimal plain-PyTorch training loop with the CATMIL loss and per-term logging (synthetic data).
 
 python examples/train_pytorch.py
 """
 import torch
 import torch.nn as nn
 
-from catmil import CATMILLoss, LabelComponents
-from catmil.metrics import lesion_detection_metrics
+from componentloss import CATMILLoss, LabelComponents
+from componentloss.metrics import lesion_detection_metrics
 
 torch.manual_seed(0)
 
@@ -30,7 +30,7 @@ label_cc = LabelComponents()
 for epoch in range(10):
     loss_fn.set_epoch(epoch)
     image, label = synthetic_batch()
-    components = torch.stack([label_cc(l) for l in label])  # normally done in the DataLoader workers
+    components = torch.stack([label_cc(lab) for lab in label])  # normally done in the DataLoader workers
     out = loss_fn(model(image), label, components=components, return_components=True)
     opt.zero_grad()
     out["loss"].backward()

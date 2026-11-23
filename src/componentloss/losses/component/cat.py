@@ -6,8 +6,8 @@ from typing import Optional, Sequence
 import torch
 import torch.nn as nn
 
-from ..cc import label_batch
-from ._utils import BinaryProblem, binary_problems, no_autocast, no_compile, squeeze_target
+from ...components import label_batch
+from .._utils import BinaryProblem, binary_problems, no_autocast, no_compile, squeeze_target
 
 
 def component_weight_map(

@@ -3,7 +3,7 @@ import pytest
 import torch
 from scipy import ndimage
 
-import catmil.cc
+import componentloss.components.labeling as labeling
 
 
 def make_batch(b=2, c=2, spatial=(24, 24, 24), p_lesion=0.004, seed=0, n_classes=None):
@@ -27,9 +27,9 @@ def make_batch(b=2, c=2, spatial=(24, 24, 24), p_lesion=0.004, seed=0, n_classes
     return logits, torch.from_numpy(lab[:, None]).float()
 
 
-@pytest.fixture(params=["scipy", "cc3d"] if catmil.cc._HAS_CC3D else ["scipy"])
+@pytest.fixture(params=["scipy", "cc3d"] if labeling._HAS_CC3D else ["scipy"])
 def cc_backend(request):
-    old = catmil.cc.BACKEND
-    catmil.cc.set_backend(request.param)
+    old = labeling.BACKEND
+    labeling.set_backend(request.param)
     yield request.param
-    catmil.cc.BACKEND = old
+    labeling.BACKEND = old

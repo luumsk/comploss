@@ -6,11 +6,10 @@ from typing import Callable, Dict, List
 
 import torch.nn as nn
 
-from .baselines import CCDiceCEGlobalLoss, CCDiceCELoss, DiceCELoss, FocalTverskyLoss, TverskyLoss
-from .cat import ComponentAdaptiveTverskyLoss
-from .catmil import CATMILLoss
+from .component import (CATMILLoss, CCDiceCEGlobalLoss, CCDiceCELoss, ComponentAdaptiveTverskyLoss,
+                        SmallLesionMILLoss)
 from .deep_supervision import DeepSupervisionLoss
-from .mil import SmallLesionMILLoss
+from .voxel import DiceCELoss, FocalTverskyLoss, TverskyLoss
 
 _REGISTRY: Dict[str, Callable[..., nn.Module]] = {
     "dice_ce": DiceCELoss,

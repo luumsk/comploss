@@ -10,7 +10,7 @@ from typing import Dict, Optional, Sequence, Tuple
 
 import numpy as np
 
-from .cc import label_components
+from ..components import label_components
 
 EPS = 1e-8
 SIZE_BINS: Tuple[Tuple[str, float], ...] = (("tiny", 10), ("small", 50), ("medium", 200), ("large", np.inf))

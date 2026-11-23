@@ -11,8 +11,8 @@ from nnunetv2.training.loss.deep_supervision import DeepSupervisionWrapper  # no
 from nnunetv2.training.loss.dice import MemoryEfficientSoftDiceLoss  # noqa: E402
 
 import _reference_losses as ref  # noqa: E402
-from catmil import CCDiceCEGlobalLoss, DiceCELoss  # noqa: E402
-from catmil.integrations import nnunet as integ  # noqa: E402
+from componentloss import CCDiceCEGlobalLoss, DiceCELoss  # noqa: E402
+from componentloss.integrations import nnunet as integ  # noqa: E402
 from conftest import make_batch  # noqa: E402
 
 TOL = dict(rtol=1e-5, atol=1e-6)
@@ -139,11 +139,11 @@ def test_trainer_regions_ignore_and_no_ds():
 
 def test_hyperparameters_from_subclass_and_env(monkeypatch):
     class Variant(integ.nnUNetTrainerCATMIL):
-        catmil_lambda_mil = 0.5
+        loss_lambda_mil = 0.5
 
     assert _fake_trainer(Variant)._build_loss().lambda_mil == 0.5
-    monkeypatch.setenv("CATMIL_LAMBDA_MIL", "0.7")
-    monkeypatch.setenv("CATMIL_DS_MODE", "all")
+    monkeypatch.setenv("COMPONENTLOSS_LAMBDA_MIL", "0.7")
+    monkeypatch.setenv("COMPONENTLOSS_DS_MODE", "all")
     loss = _fake_trainer(integ.nnUNetTrainerCATMIL)._build_loss()
     assert loss.lambda_mil == 0.7 and loss.ds_mode == "all"
 

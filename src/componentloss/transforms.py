@@ -14,7 +14,7 @@ from typing import Hashable, Mapping, Optional
 import numpy as np
 import torch
 
-from .cc import label_components
+from .components import label_components
 
 
 class LabelComponents:

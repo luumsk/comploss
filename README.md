@@ -1,35 +1,65 @@
-# catmil
+# componentloss
 
-Loss functions for **small lesion segmentation** in 3D (and 2D) medical images:
+**Component-aware loss functions and object-level metrics for segmentation in PyTorch.**
 
-* **CATMIL**: the method of *Component-Adaptive and Lesion-Level Supervision for Improved Small
-  Structure Segmentation in Brain MRI* (Luu, Pavlovskiy, Tuchinov). It is DiceCE plus a
-  component-adaptive Tversky term (CAT), so every lesion counts about equally, plus a lesion-level
-  MIL term that penalises missed lesions regardless of their size.
-* **The baselines from the paper**, for fair comparison: DiceCE (nnU-Net default), Tversky, Focal
-  Tversky, and CC-DiceCE (Bouteille et al., ISBI 2026).
-* **nnU-Net v2 trainers** for all of them, and lesion-wise metrics and tools.
+Voxel-wise losses such as Dice, cross entropy and Tversky sum over voxels, so a few large
+objects dominate the gradient. A missed 5-voxel object barely changes the loss. That matters
+whenever an image holds many objects of very different sizes: small lesions in MRI, nodules in
+CT, cells and nuclei in microscopy, defects in industrial inspection, small buildings or
+vehicles in remote sensing.
 
-Every loss takes raw logits `(B, C, *spatial)` and nnU-Net-style targets `(B, 1, *spatial)`. The
-losses work in plain PyTorch, MONAI or nnU-Net. Tests check that they reproduce the paper's
-implementation (values and gradients).
+The losses in `componentloss` are defined over the **connected components** of the ground
+truth, so every object counts. The package includes:
+
+* **Component-aware losses**: CATMIL and its two terms, CAT and MIL (Luu et al.), and CC-DiceCE
+  (Bouteille et al., ISBI 2026).
+* **Voxel-wise baselines** with the same interface: DiceCE (identical to nnU-Net's default),
+  Tversky (identical to MONAI's), Focal Tversky.
+* **Object-level metrics**: object recall, precision and F1, recall by object size, a per-object
+  table, size profiling of a dataset.
+* **Integrations**: nnU-Net v2 trainers for every loss, MONAI-style transforms, deep supervision.
+
+All losses take raw logits `(B, C, *spatial)` and integer targets `(B, 1, *spatial)` (the
+nnU-Net layout), in 2D or 3D. Tests check every port against its reference implementation
+(values and gradients).
 
 ## Install
 
 ```bash
-pip install -e ./catmil                 # torch, numpy, scipy
-pip install -e "./catmil[nnunet]"       # + nnU-Net v2 trainers
-pip install -e "./catmil[fast-cc]"      # + faster connected components (cc3d)
+pip install componentloss                  # torch, numpy, scipy
+pip install "componentloss[nnunet]"        # + nnU-Net v2 trainers
+pip install "componentloss[fast-cc]"       # + faster connected components (cc3d)
 ```
 
-## PyTorch / MONAI
+From source (for development):
+
+```bash
+git clone https://github.com/luumsk/componentloss && cd componentloss
+pip install -e ".[dev,nnunet,fast-cc]"
+pytest
+```
+
+## Available losses
+
+| name (`get_loss`) | class | type | reference |
+|---|---|---|---|
+| `catmil` | `CATMILLoss` | DiceCE + CAT + MIL | Luu et al., arXiv:2604.08015 |
+| `cat` | `ComponentAdaptiveTverskyLoss` | component-weighted Tversky | Luu et al. |
+| `mil` | `SmallLesionMILLoss` | one bag per object, `-log max p` | Luu et al. |
+| `cc_dice_ce` | `CCDiceCEGlobalLoss` | Voronoi component DiceCE + global DiceCE | Bouteille et al., arXiv:2511.17146 |
+| `cc_dice_ce_component` | `CCDiceCELoss` | Voronoi component DiceCE only | Bouteille et al. |
+| `dice_ce` | `DiceCELoss` | voxel-wise (nnU-Net default) | Isensee et al. |
+| `tversky` | `TverskyLoss` | voxel-wise | Salehi et al. |
+| `focal_tversky` | `FocalTverskyLoss` | voxel-wise | Abraham & Khan |
+
+## Usage in PyTorch or MONAI
 
 ```python
-from catmil import CATMILLoss
+from componentloss import get_loss
 
-loss_fn = CATMILLoss()          # DiceCE + 0.1*CAT (linear warm-up over 50 epochs) + 0.2*MIL
+loss_fn = get_loss("catmil")      # DiceCE + 0.1*CAT (linear warm-up over 50 epochs) + 0.2*MIL
 for epoch in range(n_epochs):
-    loss_fn.set_epoch(epoch)    # drives the CAT warm-up
+    loss_fn.set_epoch(epoch)      # drives the CAT warm-up
     for image, label in loader:              # label: (B, 1, D, H, W) integer map
         logits = model(image)                # (B, C, D, H, W); or a list for deep supervision
         out = loss_fn(logits, label, return_components=True)
@@ -37,96 +67,129 @@ for epoch in range(n_epochs):
         log(base=out["base"], cat=out["cat"], mil=out["mil"])
 ```
 
-Pick any loss by name, for example to compare losses from a config file:
+You can pick any loss by name, for example to compare losses from a config file:
 
 ```python
-from catmil import get_loss, list_losses
-list_losses()   # ['cat', 'catmil', 'cc_dice_ce', 'cc_dice_ce_component', 'dice_ce', 'focal_tversky', 'mil', 'tversky']
+from componentloss import get_loss, list_losses, register_loss
+list_losses()
 loss_fn = get_loss("focal_tversky", deep_supervision=True)   # takes lists of outputs/targets
+register_loss("my_loss", MyLoss)                             # compare your own loss the same way
 ```
 
-Other options:
+A runnable example with synthetic data is in [examples/train_pytorch.py](examples/train_pytorch.py).
+
+### Options shared by the component losses
 
 | option | meaning |
 |---|---|
-| `CATMILLoss(base_loss=...)` | use your own voxel loss instead of DiceCE |
-| `ds_mode="highest"` / `"all"` | CAT and MIL on the full-resolution output only (paper), or on every deep-supervision output |
-| `mode="union"` / `"per_class"` / `"auto"` | one lesion mask = any foreground (paper), or one per class (multi-class, e.g. BraTS) |
+| `mode="union"` / `"per_class"` / `"auto"` | one object mask = any foreground, or one mask per class (multi-class) |
 | `activation="sigmoid"` | region-based / multi-label outputs (binary target per channel) |
-| `ignore_index=k` | voxels labelled `k` are ignored (never part of a lesion) |
-| `cat_kwargs=dict(alpha, beta, gamma, eps_cc, w_bg)` | CAT hyperparameters |
+| `ignore_index=k` | voxels labelled `k` are ignored (never part of an object) |
+| `connectivity=1` | 1 = face neighbours (6 in 3D, 4 in 2D), up to `ndim` = all neighbours |
 | `components=` | precomputed GT components from `LabelComponentsd` in the data loader (avoids a GPU→CPU copy per step) |
 
-Paper defaults: alpha 0.3, beta 0.7, gamma 1, eps_cc 5, w_bg 0.01, lambda_cat 0.1 (50-epoch
-warm-up), lambda_mil 0.2, 6-connectivity.
+CATMIL also takes `base_loss=` (your own voxel loss instead of DiceCE), `ds_mode="highest"` or
+`"all"` (component terms on the full-resolution output only, or on every deep-supervision output),
+and `cat_kwargs=dict(alpha, beta, gamma, eps_cc, w_bg)`.
+
+The CATMIL defaults are the paper's values: alpha 0.3, beta 0.7, gamma 1, eps_cc 5, w_bg 0.01,
+lambda_cat 0.1 (50-epoch warm-up), lambda_mil 0.2, connectivity 1.
 
 ## nnU-Net v2
 
 ```bash
-pip install -e "./catmil[nnunet]"
-catmil-nnunet install        # puts a stub in nnunetv2/training/nnUNetTrainer/ (nnU-Net only looks there)
-catmil-nnunet status         # shows which module each trainer resolves to
+pip install "componentloss[nnunet]"
+componentloss-nnunet install     # puts a stub in nnunetv2/training/nnUNetTrainer/ (nnU-Net only looks there)
+componentloss-nnunet status      # shows which module each trainer resolves to
 nnUNetv2_train DATASET 3d_fullres FOLD -tr nnUNetTrainerCATMIL
 ```
 
-Trainers: `nnUNetTrainerCATMIL`, `nnUNetTrainerCAT`, `nnUNetTrainerMIL` (ablations),
-`nnUNetTrainerDiceCE`, `nnUNetTrainerTversky`, `nnUNetTrainerFocalTversky` and
-`nnUNetTrainerCCDiceCE`.
+The trainers are `nnUNetTrainerCATMIL`, `nnUNetTrainerCAT`, `nnUNetTrainerMIL`,
+`nnUNetTrainerCCDiceCE`, `nnUNetTrainerDiceCE`, `nnUNetTrainerTversky` and
+`nnUNetTrainerFocalTversky`.
 
 * The base term is nnU-Net's own loss (DiceCE, or Dice+BCE for regions), with nnU-Net's deep
   supervision, DDP batch Dice and ignore label.
 * The CAT warm-up follows `current_epoch`, including when you resume from a checkpoint.
-* CAT and MIL run in float32 even under AMP, and stay out of `torch.compile`.
-* Tested with nnU-Net 2.1.1 (the paper's fork in `slsseg/`) and 2.8.1 (PyPI).
+* The component terms run in float32 even under AMP, and stay out of `torch.compile`.
+* Tested with nnU-Net 2.1.1 and 2.8.1.
 
-Change hyperparameters with a subclass. Put it in a file inside
+To change hyperparameters, write a subclass and put it in a file inside
 `nnunetv2/training/nnUNetTrainer/`:
 
 ```python
-from catmil.integrations.nnunet import nnUNetTrainerCATMIL
+from componentloss.integrations.nnunet import nnUNetTrainerCATMIL
 
 class nnUNetTrainerCATMIL_lmil05(nnUNetTrainerCATMIL):
-    catmil_lambda_mil = 0.5          # any catmil_* attribute, see catmil/integrations/nnunet.py
+    loss_lambda_mil = 0.5          # any loss_* attribute, see componentloss/integrations/nnunet/__init__.py
 ```
 
-For a quick test you can use environment variables instead, e.g.
-`CATMIL_LAMBDA_MIL=0.5 nnUNetv2_train ...`. `CATMIL_NUM_EPOCHS` overrides the epoch count.
-Without it, nnU-Net's own default applies (1000 in stock nnU-Net, 150 in the paper's fork).
+For a quick test you can set environment variables instead, for example
+`COMPONENTLOSS_LAMBDA_MIL=0.5 nnUNetv2_train ...`. `COMPONENTLOSS_NUM_EPOCHS` overrides the
+epoch count.
 
-`catmil-nnunet uninstall` removes the stub. Run `install` again after you upgrade nnunetv2.
+`componentloss-nnunet uninstall` removes the stub. Run `install` again after you upgrade nnunetv2.
 
-## Lesion-wise evaluation
+## Object-level evaluation
 
-Voxel Dice hides missed small lesions. These functions use the paper's definitions:
-6-connected components, and a lesion counts as detected if any predicted voxel overlaps it.
+Voxel Dice hides missed small objects. A ground-truth object is a connected component, and it
+counts as detected if any predicted voxel overlaps it.
 
 ```python
-from catmil.metrics import lesion_detection_metrics, recall_by_size, lesion_table
-lesion_detection_metrics(gt, pred, spacing=(1, 1, 1))   # lesion F1/precision/recall, small-lesion recall, FP count, missed volume
+from componentloss.metrics import lesion_detection_metrics, recall_by_size, lesion_table
+lesion_detection_metrics(gt, pred, spacing=(1, 1, 1))   # object F1/precision/recall, small-object recall, FP count, missed volume
 recall_by_size(gt, pred)                                 # tiny <=10, small <=50, medium <=200, large voxels
-lesion_table(gt, pred, prob)                             # one row per lesion: size, detected, coverage, max prob
+lesion_table(gt, pred, prob)                             # one row per object: size, detected, coverage, max prob
 ```
 
 ## Command line
 
 ```bash
-catmil profile path/to/labelsTr     # lesion-size distribution: does your dataset have many small lesions?
-catmil bench --shape 2 2 128 128 128 --device cuda   # ms per forward+backward for each loss
-catmil losses
+componentloss profile path/to/labelsTr     # object-size distribution: does your dataset have many small objects?
+componentloss bench --shape 2 2 128 128 128 --device cuda   # ms per forward+backward for each loss
+componentloss losses
 ```
 
 ## Tests
 
 ```bash
-pip install -e "./catmil[test]"
-pytest catmil/tests      # the nnU-Net tests run when nnunetv2 is installed
+pip install -e ".[test]"
+pytest            # the nnU-Net tests run when nnunetv2 is installed
 ```
 
-`tests/_reference_losses.py` holds frozen copies of the research code. The parity tests compare
-values and gradients against it, against nnU-Net's `DC_and_CE_loss` / `DC_and_BCE_loss`, against
-MONAI's `TverskyLoss`, and against the paper's evaluation script.
+`tests/_reference_losses.py` and `tests/_reference_metrics.py` hold frozen copies of the
+research code. The parity tests compare values and gradients against them, against nnU-Net's
+`DC_and_CE_loss` / `DC_and_BCE_loss`, and against MONAI's `TverskyLoss`.
+
+## Adding a loss
+
+1. Put a component-aware loss in `src/componentloss/losses/component/`, or a voxel-wise one in
+   `losses/voxel/`, using the `forward(logits, target)` interface. Use
+   `componentloss.components` for labelling and `losses._utils.binary_problems` for the
+   softmax / sigmoid / ignore-label handling.
+2. Register it in `losses/registry.py`.
+3. If you port it from published code, add a frozen copy of that code to `tests/` and a parity
+   test. Cite the paper in the docstring and in the table above.
 
 ## Citation
 
-See `CITATION.cff` in the repository root. If you use CC-DiceCE, please also cite Bouteille et al.,
-ISBI 2026 (arXiv:2511.17146).
+If you use this package, please cite it (see [CITATION.cff](CITATION.cff)). If you use CATMIL,
+CAT or MIL, please also cite:
+
+```bibtex
+@article{luu2026catmil,
+  title   = {Component-Adaptive and Lesion-Level Supervision for Improved Small Structure Segmentation in Brain MRI},
+  author  = {Luu, Minh Sao Khue and Pavlovskiy, Evgeniy N. and Tuchinov, Bair N.},
+  journal = {arXiv preprint arXiv:2604.08015},
+  year    = {2026}
+}
+```
+
+If you use CC-DiceCE, please cite Bouteille et al., ISBI 2026 (arXiv:2511.17146).
+
+The code to reproduce the CATMIL paper is at
+[github.com/luumsk/SmallLesionMRI](https://github.com/luumsk/SmallLesionMRI).
+
+## License
+
+MIT, see [LICENSE](LICENSE).

@@ -6,8 +6,8 @@ from typing import List, Optional, Sequence
 import torch
 import torch.nn as nn
 
-from ..cc import label_batch
-from ._utils import binary_problems, no_autocast, no_compile, squeeze_target
+from ...components import label_batch
+from .._utils import binary_problems, no_autocast, no_compile, squeeze_target
 
 
 def component_max(prob: torch.Tensor, components: torch.Tensor) -> torch.Tensor:

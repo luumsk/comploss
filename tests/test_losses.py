@@ -7,10 +7,10 @@ import pytest
 import torch
 
 import _reference_losses as ref
-from catmil import (CATMILLoss, ComponentAdaptiveTverskyLoss, DeepSupervisionLoss, DiceCELoss,
+from componentloss import (CATMILLoss, ComponentAdaptiveTverskyLoss, DeepSupervisionLoss, DiceCELoss,
                     LabelComponents, LabelComponentsd, SmallLesionMILLoss, get_loss, list_losses,
                     nnunet_ds_weights, register_loss)
-from catmil.losses.mil import component_max
+from componentloss.losses.component.mil import component_max
 from conftest import make_batch
 
 

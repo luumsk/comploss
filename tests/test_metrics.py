@@ -1,16 +1,14 @@
 import math
-import sys
-from pathlib import Path
 
 import numpy as np
 import pytest
 from scipy import ndimage
 
-from catmil.cli import main as cli_main
-from catmil.metrics import (lesion_detection_metrics, lesion_size_profile, lesion_table, recall_by_size,
-                            remove_small_components)
+import _reference_metrics as ref
 
-REPO = Path(__file__).resolve().parents[2]
+from componentloss.cli import main as cli_main
+from componentloss.metrics import (lesion_detection_metrics, lesion_size_profile, lesion_table, recall_by_size,
+                                   remove_small_components)
 
 
 def _masks(seed, shape=(40, 40, 40)):
@@ -22,15 +20,8 @@ def _masks(seed, shape=(40, 40, 40)):
 
 @pytest.mark.parametrize("seed", range(5))
 def test_detection_matches_paper_script(seed):
-    if not (REPO / "multiscale_eval.py").exists():
-        pytest.skip("paper evaluation script not available")
-    sys.path.insert(0, str(REPO))
-    try:
-        mse = pytest.importorskip("multiscale_eval")
-    finally:
-        sys.path.pop(0)
     gt, pred = _masks(seed)
-    old = mse.lesion_detection_metrics(gt, pred, (1.0, 1.0, 1.2), small_voxels_thresh=50)
+    old = ref.lesion_detection_metrics(gt, pred, (1.0, 1.0, 1.2), small_voxels_thresh=50)
     new = lesion_detection_metrics(gt, pred, (1.0, 1.0, 1.2), small_voxels=50)
     for k, v in old.items():
         assert (math.isnan(v) and math.isnan(new[k])) or math.isclose(v, new[k], rel_tol=1e-6, abs_tol=1e-9), k
