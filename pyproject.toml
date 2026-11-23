@@ -10,7 +10,7 @@ readme = "README.md"
 license = { text = "MIT" }
 authors = [{ name = "Minh Sao Khue Luu" }]
 maintainers = [{ name = "Minh Sao Khue Luu" }]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = ["torch>=2.0", "numpy", "scipy"]
 keywords = ["segmentation", "loss function", "connected components", "small objects", "instance imbalance",
             "medical image segmentation", "nnU-Net", "pytorch"]

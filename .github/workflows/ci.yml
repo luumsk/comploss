@@ -12,7 +12,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - python: "3.9"
+          - python: "3.10"
             extras: "test"
           - python: "3.11"
             extras: "test,fast-cc"
