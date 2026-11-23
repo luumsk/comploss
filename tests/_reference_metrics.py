@@ -2,7 +2,7 @@
 
 Source: multiscale_eval.py in https://github.com/luumsk/SmallLesionMRI (commit cd16748), copied
 verbatim (only the functions needed by lesion_detection_metrics). Used by test_metrics.py to
-check that componentloss.metrics reproduces the paper's numbers. Do not edit.
+check that comploss.metrics reproduces the paper's numbers. Do not edit.
 """
 from __future__ import annotations
 

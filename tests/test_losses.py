@@ -7,10 +7,10 @@ import pytest
 import torch
 
 import _reference_losses as ref
-from componentloss import (CATMILLoss, ComponentAdaptiveTverskyLoss, DeepSupervisionLoss, DiceCELoss,
+from comploss import (CATMILLoss, ComponentAdaptiveTverskyLoss, DeepSupervisionLoss, DiceCELoss,
                     LabelComponents, LabelComponentsd, ComponentMILLoss, get_loss, list_losses,
                     nnunet_ds_weights, register_loss)
-from componentloss.losses.component.mil import component_max
+from comploss.losses.component.mil import component_max
 from conftest import make_batch
 
 
@@ -155,5 +155,5 @@ def test_registry():
 
 
 def test_paper_name_aliases():
-    import componentloss
-    assert componentloss.SmallLesionMILLoss is ComponentMILLoss
+    import comploss
+    assert comploss.SmallLesionMILLoss is ComponentMILLoss

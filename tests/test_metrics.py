@@ -6,8 +6,8 @@ from scipy import ndimage
 
 import _reference_metrics as ref
 
-from componentloss.cli import main as cli_main
-from componentloss.metrics import (lesion_detection_metrics, lesion_size_profile, lesion_table,
+from comploss.cli import main as cli_main
+from comploss.metrics import (lesion_detection_metrics, lesion_size_profile, lesion_table,
                                    object_detection_metrics, object_size_profile, object_table, recall_by_size,
                                    remove_small_components)
 

@@ -3,7 +3,7 @@ import pytest
 import torch
 from scipy import ndimage
 
-import componentloss.components.labeling as labeling
+import comploss.components.labeling as labeling
 
 
 def make_batch(b=2, c=2, spatial=(24, 24, 24), p_lesion=0.004, seed=0, n_classes=None):

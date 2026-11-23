@@ -1,4 +1,4 @@
-"""componentloss: component-aware losses and object-level metrics for segmentation.
+"""comploss: component-aware losses and object-level metrics for segmentation.
 
 Voxel-wise losses (Dice, cross entropy, Tversky) are dominated by large objects, so small
 structures can be missed at almost no cost. The losses here are defined over the connected
@@ -6,7 +6,7 @@ components of the ground truth instead, so every object counts.
 
 Quick start::
 
-    from componentloss import get_loss
+    from comploss import get_loss
     loss_fn = get_loss("catmil")      # DiceCE + 0.1 * CAT (50-epoch warm-up) + 0.2 * MIL
     for epoch in range(n_epochs):
         loss_fn.set_epoch(epoch)

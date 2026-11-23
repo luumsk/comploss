@@ -5,8 +5,8 @@ python examples/train_pytorch.py
 import torch
 import torch.nn as nn
 
-from componentloss import CATMILLoss, LabelComponents
-from componentloss.metrics import object_detection_metrics
+from comploss import CATMILLoss, LabelComponents
+from comploss.metrics import object_detection_metrics
 
 torch.manual_seed(0)
 

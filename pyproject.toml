@@ -3,7 +3,7 @@ requires = ["setuptools>=64"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "componentloss"
+name = "comploss"
 version = "0.1.0"
 description = "Component-aware loss functions and object-level metrics for segmenting small and multiple structures (CATMIL, CC-DiceCE, ...), with nnU-Net v2 and MONAI support."
 readme = "README.md"
@@ -32,13 +32,12 @@ test = ["pytest", "monai>=1.3"]
 dev = ["pytest", "monai>=1.3", "ruff", "build", "twine"]
 
 [project.scripts]
-componentloss = "componentloss.cli:main"
-componentloss-nnunet = "componentloss.integrations.nnunet.install:main"
+comploss = "comploss.cli:main"
 
 [project.urls]
-Repository = "https://github.com/luumsk/componentloss"
-Issues = "https://github.com/luumsk/componentloss/issues"
-Changelog = "https://github.com/luumsk/componentloss/blob/main/CHANGELOG.md"
+Repository = "https://github.com/luumsk/comploss"
+Issues = "https://github.com/luumsk/comploss/issues"
+Changelog = "https://github.com/luumsk/comploss/blob/main/CHANGELOG.md"
 "CATMIL paper code" = "https://github.com/luumsk/SmallLesionMRI"
 
 [tool.setuptools.packages.find]

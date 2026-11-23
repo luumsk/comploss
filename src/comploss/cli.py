@@ -1,4 +1,4 @@
-"""Command line: ``componentloss losses | profile <labels_dir> | bench``."""
+"""Command line: ``comploss losses | profile <labels_dir> | bench | nnunet {install,uninstall,status}``."""
 from __future__ import annotations
 
 import argparse
@@ -16,7 +16,7 @@ def _load_mask(path: Path) -> np.ndarray:
         try:
             import nibabel as nib
         except ImportError as e:  # pragma: no cover
-            raise SystemExit("reading NIfTI needs nibabel: pip install 'componentloss[io]'") from e
+            raise SystemExit("reading NIfTI needs nibabel: pip install 'comploss[io]'") from e
         return np.asarray(nib.load(str(path)).dataobj) > 0
     if name.endswith(".npy"):
         return np.load(path) > 0
@@ -81,8 +81,13 @@ def cmd_bench(args) -> int:
     return 0
 
 
+def cmd_nnunet(args) -> int:
+    from .integrations.nnunet import install as inst
+    return {"install": inst.install, "uninstall": inst.uninstall, "status": inst.status}[args.action]()
+
+
 def main(argv=None) -> int:
-    ap = argparse.ArgumentParser(prog="componentloss", description=__doc__)
+    ap = argparse.ArgumentParser(prog="comploss", description=__doc__)
     sub = ap.add_subparsers(dest="cmd", required=True)
     p = sub.add_parser("profile", help="object-size distribution of a folder of GT masks")
     p.add_argument("labels_dir")
@@ -98,6 +103,9 @@ def main(argv=None) -> int:
     p.add_argument("--warmup", type=int, default=2)
     p.add_argument("--losses", nargs="*")
     p.set_defaults(func=cmd_bench)
+    p = sub.add_parser("nnunet", help="make the nnU-Net trainers visible to nnUNetv2_train")
+    p.add_argument("action", choices=["install", "uninstall", "status"])
+    p.set_defaults(func=cmd_nnunet)
     args = ap.parse_args(argv)
     return args.func(args)
 

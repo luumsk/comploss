@@ -21,12 +21,12 @@ First release, extracted from the `catmil` package of
   `object_size_profile`, `remove_small_components`. The `lesion_*` functions of `catmil` are kept
   as aliases and return lesion key names (`lesion_recall`, ...) with identical values.
 - `LabelComponents` / `LabelComponentsd` data-loader transforms.
-- nnU-Net v2 trainers for every loss and the `componentloss-nnunet` installer.
-- `componentloss` command line (`losses`, `profile`, `bench`).
+- nnU-Net v2 trainers for every loss and the `comploss nnunet` installer.
+- `comploss` command line (`losses`, `profile`, `bench`, `nnunet install | uninstall | status`).
 
 ### Changed (compared to `catmil` in SmallLesionMRI)
-- Package and CLI renamed: `catmil` -> `componentloss`, `catmil-nnunet` -> `componentloss-nnunet`.
+- Package and CLI renamed: `catmil` -> `comploss`, `catmil-nnunet` -> `comploss nnunet`.
 - nnU-Net trainer hyperparameters: `catmil_<name>` -> `loss_<name>`, environment variables
-  `CATMIL_<NAME>` -> `COMPONENTLOSS_<NAME>`. Trainer class names are unchanged.
+  `CATMIL_<NAME>` -> `COMPLOSS_<NAME>`. Trainer class names are unchanged.
 - Modules reorganised into `components/`, `losses/voxel/`, `losses/component/`, `metrics/` and
   `integrations/nnunet/`. Loss values are unchanged (parity tests).

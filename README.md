@@ -1,4 +1,4 @@
-# componentloss
+# comploss
 
 **Component-aware loss functions and object-level metrics for segmentation in PyTorch.**
 
@@ -8,7 +8,7 @@ whenever an image holds many objects of very different sizes: small lesions in M
 CT, cells and nuclei in microscopy, defects in industrial inspection, small buildings or
 vehicles in remote sensing.
 
-The losses in `componentloss` are defined over the **connected components** of the ground
+The losses in `comploss` are defined over the **connected components** of the ground
 truth, so every object counts. The package includes:
 
 * **Component-aware losses**: CATMIL and its two terms, CAT and MIL (Luu et al.), and CC-DiceCE
@@ -26,15 +26,15 @@ nnU-Net layout), in 2D or 3D. Tests check every port against its reference imple
 ## Install
 
 ```bash
-pip install componentloss                  # torch, numpy, scipy
-pip install "componentloss[nnunet]"        # + nnU-Net v2 trainers
-pip install "componentloss[fast-cc]"       # + faster connected components (cc3d)
+pip install comploss                  # torch, numpy, scipy
+pip install "comploss[nnunet]"        # + nnU-Net v2 trainers
+pip install "comploss[fast-cc]"       # + faster connected components (cc3d)
 ```
 
 From source (for development):
 
 ```bash
-git clone https://github.com/luumsk/componentloss && cd componentloss
+git clone https://github.com/luumsk/comploss && cd comploss
 pip install -e ".[dev,nnunet,fast-cc]"
 pytest
 ```
@@ -55,7 +55,7 @@ pytest
 ## Usage in PyTorch or MONAI
 
 ```python
-from componentloss import get_loss
+from comploss import get_loss
 
 loss_fn = get_loss("catmil")      # DiceCE + 0.1*CAT (linear warm-up over 50 epochs) + 0.2*MIL
 for epoch in range(n_epochs):
@@ -70,7 +70,7 @@ for epoch in range(n_epochs):
 You can pick any loss by name, for example to compare losses from a config file:
 
 ```python
-from componentloss import get_loss, list_losses, register_loss
+from comploss import get_loss, list_losses, register_loss
 list_losses()
 loss_fn = get_loss("focal_tversky", deep_supervision=True)   # takes lists of outputs/targets
 register_loss("my_loss", MyLoss)                             # compare your own loss the same way
@@ -98,9 +98,9 @@ lambda_cat 0.1 (50-epoch warm-up), lambda_mil 0.2, connectivity 1.
 ## nnU-Net v2
 
 ```bash
-pip install "componentloss[nnunet]"
-componentloss-nnunet install     # puts a stub in nnunetv2/training/nnUNetTrainer/ (nnU-Net only looks there)
-componentloss-nnunet status      # shows which module each trainer resolves to
+pip install "comploss[nnunet]"
+comploss nnunet install     # puts a stub in nnunetv2/training/nnUNetTrainer/ (nnU-Net only looks there)
+comploss nnunet status      # shows which module each trainer resolves to
 nnUNetv2_train DATASET 3d_fullres FOLD -tr nnUNetTrainerCATMIL
 ```
 
@@ -118,17 +118,17 @@ To change hyperparameters, write a subclass and put it in a file inside
 `nnunetv2/training/nnUNetTrainer/`:
 
 ```python
-from componentloss.integrations.nnunet import nnUNetTrainerCATMIL
+from comploss.integrations.nnunet import nnUNetTrainerCATMIL
 
 class nnUNetTrainerCATMIL_lmil05(nnUNetTrainerCATMIL):
-    loss_lambda_mil = 0.5          # any loss_* attribute, see componentloss/integrations/nnunet/__init__.py
+    loss_lambda_mil = 0.5          # any loss_* attribute, see comploss/integrations/nnunet/__init__.py
 ```
 
 For a quick test you can set environment variables instead, for example
-`COMPONENTLOSS_LAMBDA_MIL=0.5 nnUNetv2_train ...`. `COMPONENTLOSS_NUM_EPOCHS` overrides the
+`COMPLOSS_LAMBDA_MIL=0.5 nnUNetv2_train ...`. `COMPLOSS_NUM_EPOCHS` overrides the
 epoch count.
 
-`componentloss-nnunet uninstall` removes the stub. Run `install` again after you upgrade nnunetv2.
+`comploss nnunet uninstall` removes the stub. Run `install` again after you upgrade nnunetv2.
 
 ## Object-level evaluation
 
@@ -136,7 +136,7 @@ Voxel Dice hides missed small objects. A ground-truth object is a connected comp
 counts as detected if any predicted voxel overlaps it.
 
 ```python
-from componentloss.metrics import object_detection_metrics, recall_by_size, object_table, object_size_profile
+from comploss.metrics import object_detection_metrics, recall_by_size, object_table, object_size_profile
 object_detection_metrics(gt, pred, spacing=(1, 1, 1))   # object F1/precision/recall, small-object recall, FP count, missed volume
 recall_by_size(gt, pred)                                 # tiny <=10, small <=50, medium <=200, large voxels
 object_table(gt, pred, prob)                             # one row per object: size, detected, coverage, max prob
@@ -150,9 +150,9 @@ paper. `SmallLesionMILLoss`, the paper's name for `ComponentMILLoss`, also still
 ## Command line
 
 ```bash
-componentloss profile path/to/labelsTr     # object-size distribution: does your dataset have many small objects?
-componentloss bench --shape 2 2 128 128 128 --device cuda   # ms per forward+backward for each loss
-componentloss losses
+comploss profile path/to/labelsTr     # object-size distribution: does your dataset have many small objects?
+comploss bench --shape 2 2 128 128 128 --device cuda   # ms per forward+backward for each loss
+comploss losses
 ```
 
 ## Tests
@@ -168,9 +168,9 @@ research code. The parity tests compare values and gradients against them, again
 
 ## Adding a loss
 
-1. Put a component-aware loss in `src/componentloss/losses/component/`, or a voxel-wise one in
+1. Put a component-aware loss in `src/comploss/losses/component/`, or a voxel-wise one in
    `losses/voxel/`, using the `forward(logits, target)` interface. Use
-   `componentloss.components` for labelling and `losses._utils.binary_problems` for the
+   `comploss.components` for labelling and `losses._utils.binary_problems` for the
    softmax / sigmoid / ignore-label handling.
 2. Register it in `losses/registry.py`.
 3. If you port it from published code, add a frozen copy of that code to `tests/` and a parity

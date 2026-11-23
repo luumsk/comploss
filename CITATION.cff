@@ -1,10 +1,10 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
-title: "componentloss: component-aware loss functions and object-level metrics for segmentation"
+title: "comploss: component-aware loss functions and object-level metrics for segmentation"
 type: software
 version: 0.1.0
 license: MIT
-repository-code: "https://github.com/luumsk/componentloss"
+repository-code: "https://github.com/luumsk/comploss"
 authors:
   - family-names: Luu
     given-names: Minh Sao Khue

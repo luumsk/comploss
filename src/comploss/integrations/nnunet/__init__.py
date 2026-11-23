@@ -1,6 +1,6 @@
 """nnU-Net v2 trainers for the losses in this package.
 
-Use with ``nnUNetv2_train DATASET CONFIG FOLD -tr <trainer>`` after ``componentloss-nnunet install``
+Use with ``nnUNetv2_train DATASET CONFIG FOLD -tr <trainer>`` after ``comploss nnunet install``
 (nnU-Net only finds trainers inside its own package folder; the installer drops a stub there).
 
 Trainers: nnUNetTrainerDiceCE, nnUNetTrainerTversky, nnUNetTrainerFocalTversky,
@@ -12,7 +12,7 @@ subclass (put it in a module inside nnunetv2/training/nnUNetTrainer/)::
     class nnUNetTrainerCATMIL_lmil05(nnUNetTrainerCATMIL):
         loss_lambda_mil = 0.5
 
-or with environment variables ``COMPONENTLOSS_<NAME>`` (e.g. ``COMPONENTLOSS_LAMBDA_MIL=0.5``)
+or with environment variables ``COMPLOSS_<NAME>`` (e.g. ``COMPLOSS_LAMBDA_MIL=0.5``)
 for quick experiments. The trainers do not override ``__init__`` (nnU-Net records the
 constructor arguments of the base class), so they work with every nnU-Net v2 version.
 """
@@ -54,7 +54,7 @@ class _LossTrainerMixin:
 
     def _hp(self, name: str) -> Any:
         default = getattr(self, f"loss_{name}")
-        env = os.environ.get(f"COMPONENTLOSS_{name.upper()}")
+        env = os.environ.get(f"COMPLOSS_{name.upper()}")
         if env is None:
             return default
         if isinstance(default, bool):
