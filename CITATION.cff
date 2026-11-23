@@ -8,10 +8,6 @@ repository-code: "https://github.com/luumsk/componentloss"
 authors:
   - family-names: Luu
     given-names: Minh Sao Khue
-  - family-names: Pavlovskiy
-    given-names: Evgeniy N.
-  - family-names: Tuchinov
-    given-names: Bair N.
 keywords:
   - segmentation
   - loss function

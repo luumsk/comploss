@@ -6,13 +6,13 @@ import torch
 import torch.nn as nn
 
 from componentloss import CATMILLoss, LabelComponents
-from componentloss.metrics import lesion_detection_metrics
+from componentloss.metrics import object_detection_metrics
 
 torch.manual_seed(0)
 
 
 def synthetic_batch(b=2, size=32):
-    """Images with a few bright 3x3x3 'lesions' and their labels."""
+    """Images with a few bright 3x3x3 'objects' and their labels."""
     label = torch.zeros(b, 1, size, size, size)
     for i in range(b):
         for _ in range(4):
@@ -40,4 +40,4 @@ for epoch in range(10):
 
 image, label = synthetic_batch(1)
 pred = model(image).argmax(1)[0].numpy()
-print(lesion_detection_metrics(label[0, 0].numpy(), pred))
+print(object_detection_metrics(label[0, 0].numpy(), pred))

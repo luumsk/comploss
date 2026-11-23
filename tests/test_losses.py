@@ -8,7 +8,7 @@ import torch
 
 import _reference_losses as ref
 from componentloss import (CATMILLoss, ComponentAdaptiveTverskyLoss, DeepSupervisionLoss, DiceCELoss,
-                    LabelComponents, LabelComponentsd, SmallLesionMILLoss, get_loss, list_losses,
+                    LabelComponents, LabelComponentsd, ComponentMILLoss, get_loss, list_losses,
                     nnunet_ds_weights, register_loss)
 from componentloss.losses.component.mil import component_max
 from conftest import make_batch
@@ -17,7 +17,7 @@ from conftest import make_batch
 def test_empty_foreground_is_zero_and_finite():
     logits = torch.randn(2, 2, 8, 8, 8, requires_grad=True)
     target = torch.zeros(2, 1, 8, 8, 8)
-    for fn in (ComponentAdaptiveTverskyLoss(), SmallLesionMILLoss()):
+    for fn in (ComponentAdaptiveTverskyLoss(), ComponentMILLoss()):
         v = fn(logits, target)
         assert float(v) == 0.0
     loss = CATMILLoss(cat_warmup_epochs=0)(logits, target)
@@ -30,7 +30,7 @@ def test_single_voxel_lesions():
     logits[:, 0] = 4.0  # confident background everywhere
     target = torch.zeros(1, 1, 9, 9, 9)
     target[0, 0, 2, 2, 2] = target[0, 0, 6, 6, 6] = 1
-    mil = SmallLesionMILLoss()(logits, target)
+    mil = ComponentMILLoss()(logits, target)
     p = torch.softmax(torch.tensor([4.0, -4.0]), 0)[1]
     assert math.isclose(float(mil), float(-torch.log(p)), rel_tol=1e-5)
 
@@ -49,21 +49,21 @@ def test_ignore_index_excluded():
     logits, target = make_batch(2, 2, (16, 16, 16), seed=11)
     t_ign = target.clone()
     t_ign[:, :, :4] = 2  # ignore a slab
-    for cls in (ComponentAdaptiveTverskyLoss, SmallLesionMILLoss):
+    for cls in (ComponentAdaptiveTverskyLoss, ComponentMILLoss):
         v = cls(ignore_index=2)(logits, t_ign)
         assert torch.isfinite(v)
     # with nothing ignored, ignore_index must not change the value
     torch.testing.assert_close(ComponentAdaptiveTverskyLoss(ignore_index=2)(logits, target),
                                ComponentAdaptiveTverskyLoss()(logits, target))
     # an all-ignored patch has no lesions
-    assert float(SmallLesionMILLoss(ignore_index=2)(logits, torch.full_like(target, 2))) == 0.0
+    assert float(ComponentMILLoss(ignore_index=2)(logits, torch.full_like(target, 2))) == 0.0
 
 
 def test_regions_sigmoid():
     logits = torch.randn(2, 3, 16, 16, 16, requires_grad=True)
     _, lab = make_batch(2, 2, (16, 16, 16), seed=12, p_lesion=0.01)
     regions = torch.cat([lab > 0] * 3, 1).float()
-    for fn in (ComponentAdaptiveTverskyLoss(activation="sigmoid"), SmallLesionMILLoss(activation="sigmoid"),
+    for fn in (ComponentAdaptiveTverskyLoss(activation="sigmoid"), ComponentMILLoss(activation="sigmoid"),
                DiceCELoss(activation="sigmoid"), get_loss("tversky", activation="sigmoid"),
                CATMILLoss(activation="sigmoid", cat_warmup_epochs=0)):
         v = fn(logits, regions)
@@ -79,7 +79,7 @@ def test_regions_sigmoid():
 def test_precomputed_components_match():
     logits, target = make_batch(2, 2, (16, 16, 16), seed=13)
     cc = torch.stack([LabelComponents()(t) for t in target])  # (B, 1, *spatial)
-    for fn in (ComponentAdaptiveTverskyLoss(), SmallLesionMILLoss()):
+    for fn in (ComponentAdaptiveTverskyLoss(), ComponentMILLoss()):
         torch.testing.assert_close(fn(logits, target, components=cc), fn(logits, target))
     d = LabelComponentsd()({"label": target[0].numpy()})
     assert d["label_cc"].shape == target[0].shape
@@ -152,3 +152,8 @@ def test_registry():
     assert "my_loss" in list_losses()
     with pytest.raises(KeyError):
         get_loss("nope")
+
+
+def test_paper_name_aliases():
+    import componentloss
+    assert componentloss.SmallLesionMILLoss is ComponentMILLoss

@@ -3,7 +3,7 @@ import pytest
 import torch
 
 import _reference_losses as ref
-from componentloss import (CCDiceCELoss, ComponentAdaptiveTverskyLoss, FocalTverskyLoss, SmallLesionMILLoss,
+from componentloss import (CCDiceCELoss, ComponentAdaptiveTverskyLoss, FocalTverskyLoss, ComponentMILLoss,
                     TverskyLoss)
 from conftest import make_batch
 
@@ -67,7 +67,7 @@ def test_cat_multiclass(cc_backend):
 @pytest.mark.parametrize("b,spatial", SHAPES)
 def test_mil(cc_backend, c, b, spatial):
     logits, target = make_batch(b, c, spatial, seed=4)
-    _check(SmallLesionMILLoss(), _Lift2D(ref.SmallLesionMILLoss()), logits, target)
+    _check(ComponentMILLoss(), _Lift2D(ref.SmallLesionMILLoss()), logits, target)
 
 
 def test_tversky_matches_monai():

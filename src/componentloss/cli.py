@@ -27,22 +27,22 @@ def _load_mask(path: Path) -> np.ndarray:
 
 
 def cmd_profile(args) -> int:
-    from .metrics import lesion_size_profile
+    from .metrics import object_size_profile
     files = sorted(p for p in Path(args.labels_dir).iterdir()
                    if p.name.endswith((".nii.gz", ".nii", ".npy", ".npz")))
     if not files:
         print(f"no label files in {args.labels_dir}", file=sys.stderr)
         return 1
-    prof = lesion_size_profile([_load_mask(p) for p in files], connectivity=args.connectivity)
+    prof = object_size_profile([_load_mask(p) for p in files], connectivity=args.connectivity)
     if args.json:
         print(json.dumps(prof, indent=2))
         return 0
-    print(f"{int(prof['cases'])} cases, {int(prof['lesions'])} lesions, "
+    print(f"{int(prof['cases'])} cases, {int(prof['objects'])} objects, "
           f"median size {prof['median_size_vox']:.0f} voxels")
     for b in ("tiny", "small", "medium", "large"):
         print(f"  {b:<7}{int(prof[f'n_{b}']):>7}  {100 * prof[f'frac_{b}']:5.1f}%")
     small = prof["frac_tiny"] + prof["frac_small"]
-    print(f"lesions <= 50 voxels: {100 * small:.1f}%"
+    print(f"objects <= 50 voxels: {100 * small:.1f}%"
           + ("  -> many small objects; component-aware losses are designed for this case." if small >= 0.3 else ""))
     return 0
 
@@ -60,7 +60,7 @@ def cmd_bench(args) -> int:
     b, c, *sp = args.shape
     dev = torch.device(args.device)
     logits = torch.randn(b, c, *sp, device=dev, requires_grad=True)
-    # random sparse "lesions": blobs of a few voxels
+    # random sparse "objects": blobs of a few voxels
     tgt = (torch.rand(b, 1, *sp, device=dev) > 0.999).float()
     tgt = torch.nn.functional.max_pool3d(tgt, 3, 1, 1) if len(sp) == 3 else torch.nn.functional.max_pool2d(tgt, 3, 1, 1)
     names = args.losses or ["dice_ce", "tversky", "focal_tversky", "cc_dice_ce", "cat", "mil", "catmil"]
@@ -84,7 +84,7 @@ def cmd_bench(args) -> int:
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(prog="componentloss", description=__doc__)
     sub = ap.add_subparsers(dest="cmd", required=True)
-    p = sub.add_parser("profile", help="lesion-size distribution of a folder of GT masks")
+    p = sub.add_parser("profile", help="object-size distribution of a folder of GT masks")
     p.add_argument("labels_dir")
     p.add_argument("--connectivity", type=int, default=1)
     p.add_argument("--json", action="store_true")

@@ -30,7 +30,7 @@ from nnunetv2.training.loss.dice import MemoryEfficientSoftDiceLoss
 from nnunetv2.training.nnUNetTrainer.nnUNetTrainer import nnUNetTrainer
 
 from ...losses import (CATMILLoss, CCDiceCELoss, ComponentAdaptiveTverskyLoss, FocalTverskyLoss,
-                      SmallLesionMILLoss, TverskyLoss)
+                      ComponentMILLoss, SmallLesionMILLoss, TverskyLoss)
 
 __all__ = [
     "nnUNetTrainerDiceCE", "nnUNetTrainerTversky", "nnUNetTrainerFocalTversky", "nnUNetTrainerCCDiceCE",
@@ -199,4 +199,4 @@ class nnUNetTrainerMIL(nnUNetTrainerCATMIL):
 
 
 # re-exported so old imports from the research trainers keep working
-_ = (ComponentAdaptiveTverskyLoss, SmallLesionMILLoss)
+_ = (ComponentAdaptiveTverskyLoss, ComponentMILLoss, SmallLesionMILLoss)

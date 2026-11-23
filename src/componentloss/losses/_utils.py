@@ -55,7 +55,7 @@ def binary_problems(
     class_ids: Optional[Sequence[int]] = None,
     ignore_index: Optional[int] = None,
 ) -> List[BinaryProblem]:
-    """Split a prediction into binary lesion problems for the component-based losses.
+    """Split a prediction into binary object problems for the component-based losses.
 
     mode
         ``"union"``: one problem, foreground = any non-background class (the paper's setting).

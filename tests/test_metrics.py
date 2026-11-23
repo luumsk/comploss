@@ -7,7 +7,8 @@ from scipy import ndimage
 import _reference_metrics as ref
 
 from componentloss.cli import main as cli_main
-from componentloss.metrics import (lesion_detection_metrics, lesion_size_profile, lesion_table, recall_by_size,
+from componentloss.metrics import (lesion_detection_metrics, lesion_size_profile, lesion_table,
+                                   object_detection_metrics, object_size_profile, object_table, recall_by_size,
                                    remove_small_components)
 
 
@@ -25,22 +26,26 @@ def test_detection_matches_paper_script(seed):
     new = lesion_detection_metrics(gt, pred, (1.0, 1.0, 1.2), small_voxels=50)
     for k, v in old.items():
         assert (math.isnan(v) and math.isnan(new[k])) or math.isclose(v, new[k], rel_tol=1e-6, abs_tol=1e-9), k
+    obj = object_detection_metrics(gt, pred, (1.0, 1.0, 1.2), small_voxels=50)
+    assert {k.replace("object", "lesion"): v for k, v in obj.items()}.keys() == new.keys()
 
 
 def test_simple_case():
     gt = np.zeros((10, 10, 10), bool)
-    gt[1, 1, 1] = True            # tiny lesion, missed
+    gt[1, 1, 1] = True            # tiny object, missed
     gt[5:8, 5:8, 5:8] = True      # 27 voxels, found
     pred = np.zeros_like(gt)
     pred[6, 6, 6] = True
     pred[0, 9, 9] = True          # false positive
-    m = lesion_detection_metrics(gt, pred)
-    assert m["gt_lesion_count"] == 2 and m["fn_lesion_count"] == 1 and m["fp_lesion_count"] == 1
-    assert math.isclose(m["lesion_recall"], 0.5, rel_tol=1e-6)
+    m = object_detection_metrics(gt, pred)
+    assert m["gt_object_count"] == 2 and m["fn_object_count"] == 1 and m["fp_object_count"] == 1
+    assert math.isclose(m["object_recall"], 0.5, rel_tol=1e-6)
+    assert lesion_detection_metrics(gt, pred)["lesion_recall"] == m["object_recall"]
     r = recall_by_size(gt, pred)
     assert r["tiny"] == {"count": 1, "detected": 0, "recall": 0.0}
     assert r["small"]["count"] == 1 and r["small"]["recall"] == 1.0
-    t = lesion_table(gt, pred, prob=gt.astype(float) * 0.7)
+    t = object_table(gt, pred, prob=gt.astype(float) * 0.7)
+    assert list(lesion_table(gt, pred)["lesion_id"]) == list(t["object_id"]) == [1, 2]
     assert list(t["size_vox"]) == [1, 27] and list(t["detected"]) == [False, True]
     assert np.allclose(t["max_prob"], 0.7)
     assert remove_small_components(pred, 2).sum() == 0
@@ -52,9 +57,11 @@ def test_profile_cli(tmp_path, capsys):
         np.save(tmp_path / f"case{i}.npy", gt.astype(np.uint8))
     assert cli_main(["profile", str(tmp_path), "--json"]) == 0
     out = capsys.readouterr().out
-    assert '"lesions"' in out
-    prof = lesion_size_profile([np.load(p) for p in sorted(tmp_path.glob("*.npy"))])
-    assert prof["cases"] == 3 and prof["lesions"] > 0
+    assert '"objects"' in out
+    masks = [np.load(p) for p in sorted(tmp_path.glob("*.npy"))]
+    prof = object_size_profile(masks)
+    assert prof["cases"] == 3 and prof["objects"] > 0
+    assert lesion_size_profile(masks)["lesions"] == prof["objects"]
 
 
 def test_bench_cli(capsys):

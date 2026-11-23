@@ -45,7 +45,7 @@ pytest
 |---|---|---|---|
 | `catmil` | `CATMILLoss` | DiceCE + CAT + MIL | Luu et al., arXiv:2604.08015 |
 | `cat` | `ComponentAdaptiveTverskyLoss` | component-weighted Tversky | Luu et al. |
-| `mil` | `SmallLesionMILLoss` | one bag per object, `-log max p` | Luu et al. |
+| `mil` | `ComponentMILLoss` | one bag per object, `-log max p` | Luu et al. |
 | `cc_dice_ce` | `CCDiceCEGlobalLoss` | Voronoi component DiceCE + global DiceCE | Bouteille et al., arXiv:2511.17146 |
 | `cc_dice_ce_component` | `CCDiceCELoss` | Voronoi component DiceCE only | Bouteille et al. |
 | `dice_ce` | `DiceCELoss` | voxel-wise (nnU-Net default) | Isensee et al. |
@@ -136,11 +136,16 @@ Voxel Dice hides missed small objects. A ground-truth object is a connected comp
 counts as detected if any predicted voxel overlaps it.
 
 ```python
-from componentloss.metrics import lesion_detection_metrics, recall_by_size, lesion_table
-lesion_detection_metrics(gt, pred, spacing=(1, 1, 1))   # object F1/precision/recall, small-object recall, FP count, missed volume
+from componentloss.metrics import object_detection_metrics, recall_by_size, object_table, object_size_profile
+object_detection_metrics(gt, pred, spacing=(1, 1, 1))   # object F1/precision/recall, small-object recall, FP count, missed volume
 recall_by_size(gt, pred)                                 # tiny <=10, small <=50, medium <=200, large voxels
-lesion_table(gt, pred, prob)                             # one row per object: size, detected, coverage, max prob
+object_table(gt, pred, prob)                             # one row per object: size, detected, coverage, max prob
+object_size_profile([gt1, gt2, ...])                     # object-size distribution of a dataset
 ```
+
+For medical imaging, `lesion_detection_metrics`, `lesion_table` and `lesion_size_profile` return
+the same values with lesion key names (`lesion_recall`, `gt_lesion_count`, ...), as in the CATMIL
+paper. `SmallLesionMILLoss`, the paper's name for `ComponentMILLoss`, also still works.
 
 ## Command line
 

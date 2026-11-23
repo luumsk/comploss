@@ -1,4 +1,4 @@
-"""Lesion-level multiple-instance-learning (MIL) loss."""
+"""Object-level multiple-instance-learning (MIL) loss."""
 from __future__ import annotations
 
 from typing import List, Optional, Sequence
@@ -27,12 +27,12 @@ def component_max(prob: torch.Tensor, components: torch.Tensor) -> torch.Tensor:
     return out[present]
 
 
-class SmallLesionMILLoss(nn.Module):
-    """Each ground-truth lesion is a bag; it is "found" if one voxel in it has high probability.
+class ComponentMILLoss(nn.Module):
+    """Each ground-truth object is a bag; it is "found" if one voxel in it has high probability.
 
-    loss = mean over all lesions c in the batch of ``-log(max_{v in c} p(v))``.
+    loss = mean over all objects c in the batch of ``-log(max_{v in c} p(v))``.
 
-    The term is independent of lesion size, so a missed one-voxel lesion costs as much as a missed
+    The term is independent of object size, so a missed one-voxel object costs as much as a missed
     large one. It is meant to be added to a voxel loss with a small weight (paper: 0.2).
 
     Parameters
@@ -72,7 +72,7 @@ class SmallLesionMILLoss(nn.Module):
                 if not bool(p.fg.any()):
                     continue
                 lab = components if components is not None else label_batch(p.fg, self.connectivity)
-                if components is not None:  # only GT foreground voxels belong to a lesion
+                if components is not None:  # only GT foreground voxels belong to an object
                     lab = torch.where(p.fg, lab.long(), torch.zeros_like(lab, dtype=torch.long))
                 for b in range(p.prob.shape[0]):
                     m = component_max(p.prob[b, 0], lab[b])
@@ -81,3 +81,7 @@ class SmallLesionMILLoss(nn.Module):
             if not terms:
                 return net_output.new_zeros((), dtype=torch.float32)
             return torch.cat(terms).mean()
+
+
+# name used in the CATMIL paper ("small-lesion MIL")
+SmallLesionMILLoss = ComponentMILLoss

@@ -7,7 +7,7 @@ from typing import Callable, Dict, List
 import torch.nn as nn
 
 from .component import (CATMILLoss, CCDiceCEGlobalLoss, CCDiceCELoss, ComponentAdaptiveTverskyLoss,
-                        SmallLesionMILLoss)
+                        ComponentMILLoss)
 from .deep_supervision import DeepSupervisionLoss
 from .voxel import DiceCELoss, FocalTverskyLoss, TverskyLoss
 
@@ -18,7 +18,7 @@ _REGISTRY: Dict[str, Callable[..., nn.Module]] = {
     "cc_dice_ce": CCDiceCEGlobalLoss,          # the paper's CC-DiceCE objective (CC + global DiceCE)
     "cc_dice_ce_component": CCDiceCELoss,      # component term only
     "cat": ComponentAdaptiveTverskyLoss,       # auxiliary term alone
-    "mil": SmallLesionMILLoss,                 # auxiliary term alone
+    "mil": ComponentMILLoss,                 # auxiliary term alone
     "catmil": CATMILLoss,                      # DiceCE + CAT + MIL (handles deep supervision itself)
 }
 _HANDLES_DS = {"catmil"}

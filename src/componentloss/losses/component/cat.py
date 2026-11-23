@@ -35,24 +35,24 @@ def component_weight_map(
 
 
 class ComponentAdaptiveTverskyLoss(nn.Module):
-    """Tversky loss in which each ground-truth lesion counts about equally.
+    """Tversky loss in which each ground-truth object counts about equally.
 
-    Foreground voxels of a lesion with |c| voxels get weight ``(|c| + eps_cc) ** -gamma``,
-    background voxels get ``w_bg``. With gamma = 1 every lesion contributes roughly the same
-    total weight, so large lesions no longer dominate the gradient.
+    Foreground voxels of an object with |c| voxels get weight ``(|c| + eps_cc) ** -gamma``,
+    background voxels get ``w_bg``. With gamma = 1 every object contributes roughly the same
+    total weight, so large objects no longer dominate the gradient.
 
     Parameters
     ----------
     alpha, beta : weights of false positives and false negatives (beta > alpha favours recall).
-    gamma : size exponent; larger values emphasise small lesions more.
-    eps_cc : added to the component size, stabilises one-voxel lesions.
+    gamma : size exponent; larger values emphasise small objects more.
+    eps_cc : added to the component size, stabilises one-voxel objects.
     w_bg : weight of background voxels.
     smooth : numerical smoothing in the Tversky ratio.
     connectivity : component connectivity (1 = 6-neighbourhood in 3D, the paper's setting).
     mode : ``"union"`` (paper), ``"per_class"`` or ``"auto"``; see ``binary_problems``.
     class_ids : foreground classes for ``"per_class"`` (default all).
     activation : ``"auto"`` (sigmoid for 1 channel, else softmax), ``"softmax"`` or ``"sigmoid"``.
-    ignore_index : ignored label (weight 0, never part of a lesion).
+    ignore_index : ignored label (weight 0, never part of an object).
 
     Defaults are the values used in the paper (alpha=0.3, beta=0.7, gamma=1, eps_cc=5, w_bg=0.01).
     """
@@ -101,6 +101,6 @@ class ComponentAdaptiveTverskyLoss(nn.Module):
             if components is not None:
                 components = squeeze_target(components).to(net_output.device)
             losses = [self._tversky(p, components) for p in problems if bool(p.fg.any())]
-            if not losses:  # no lesion in the patch
+            if not losses:  # no object in the patch
                 return net_output.new_zeros((), dtype=torch.float32)
             return torch.stack(losses).mean()

@@ -10,7 +10,7 @@ import torch.nn as nn
 from .._utils import nnunet_ds_weights
 from ..voxel.dice import DiceCELoss
 from .cat import ComponentAdaptiveTverskyLoss
-from .mil import SmallLesionMILLoss
+from .mil import ComponentMILLoss
 
 
 class CATMILLoss(nn.Module):
@@ -29,7 +29,7 @@ class CATMILLoss(nn.Module):
     ds_mode : with list inputs, ``"highest"`` applies CAT and MIL to the full-resolution output
         only (paper), ``"all"`` applies them at every output with ``ds_weights``.
     cat_kwargs, mil_kwargs : extra arguments for ``ComponentAdaptiveTverskyLoss`` /
-        ``SmallLesionMILLoss`` (alpha, beta, gamma, eps_cc, w_bg, ...).
+        ``ComponentMILLoss`` (alpha, beta, gamma, eps_cc, w_bg, ...).
     mode, activation, ignore_index, connectivity : passed to both CAT and MIL.
 
     ``forward(outputs, targets, components=None, return_components=False)`` takes a tensor or a
@@ -59,7 +59,7 @@ class CATMILLoss(nn.Module):
         self.base_loss = base_loss if base_loss is not None else DiceCELoss(ignore_index=ignore_index,
                                                                             activation=activation)
         self.cat_loss = ComponentAdaptiveTverskyLoss(**{**common, **(cat_kwargs or {})})
-        self.mil_loss = SmallLesionMILLoss(**{**common, **(mil_kwargs or {})})
+        self.mil_loss = ComponentMILLoss(**{**common, **(mil_kwargs or {})})
         self.lambda_cat_final = float(lambda_cat)
         self.lambda_mil = float(lambda_mil)
         self.cat_warmup_epochs = int(cat_warmup_epochs)

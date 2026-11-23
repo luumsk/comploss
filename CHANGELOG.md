@@ -12,12 +12,14 @@ First release, extracted from the `catmil` package of
 
 ### Added
 - Component-aware losses: `CATMILLoss`, `ComponentAdaptiveTverskyLoss` (CAT),
-  `SmallLesionMILLoss` (MIL), `CCDiceCELoss` and `CCDiceCEGlobalLoss` (CC-DiceCE).
+  `ComponentMILLoss` (MIL), `CCDiceCELoss` and `CCDiceCEGlobalLoss` (CC-DiceCE).
+- `ComponentMILLoss` is the general name of the MIL term; `SmallLesionMILLoss` is kept as an alias.
 - Voxel-wise losses: `DiceCELoss` (nnU-Net default), `TverskyLoss`, `FocalTverskyLoss`, `SoftDiceLoss`.
 - `get_loss` / `list_losses` / `register_loss`, `DeepSupervisionLoss`.
 - Connected-component labelling (scipy, or cc3d when installed) and Voronoi partitions.
-- Object-level metrics: `lesion_detection_metrics`, `recall_by_size`, `lesion_table`,
-  `lesion_size_profile`, `remove_small_components`.
+- Object-level metrics: `object_detection_metrics`, `recall_by_size`, `object_table`,
+  `object_size_profile`, `remove_small_components`. The `lesion_*` functions of `catmil` are kept
+  as aliases and return lesion key names (`lesion_recall`, ...) with identical values.
 - `LabelComponents` / `LabelComponentsd` data-loader transforms.
 - nnU-Net v2 trainers for every loss and the `componentloss-nnunet` installer.
 - `componentloss` command line (`losses`, `profile`, `bench`).
