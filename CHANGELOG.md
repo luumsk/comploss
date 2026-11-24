@@ -8,6 +8,13 @@ All notable changes to this project are documented here. Versions follow
 ### Changed
 - Packaging: the licence is an SPDX expression (`license = "MIT"`, `license-files`) instead of
   the deprecated licence table and classifier; building now needs setuptools 77 or newer.
+- The `nnunet` extra needs nnU-Net v2 2.1.1 or newer (`nnunetv2>=2.1.1`). Version 2.1 computes
+  Dice+CE differently, so the trainers do not match the paper's trainers with it.
+
+### Added
+- README states the tested versions: Python 3.10–3.12, torch 2.0.1–2.15, nnU-Net v2 2.1.1–2.8,
+  and `numpy<2` with torch older than 2.3.
+- CI job with the oldest supported versions (Python 3.10, torch 2.0.1, numpy<2, nnU-Net v2 2.1.2).
 
 ## [0.1.0] - 2026-11-24
 

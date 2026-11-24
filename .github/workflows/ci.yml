@@ -18,6 +18,11 @@ jobs:
             extras: "test,fast-cc"
           - python: "3.12"
             extras: "test,fast-cc,nnunet"
+          # oldest supported versions: torch < 2.3 needs numpy < 2
+          - python: "3.10"
+            extras: "test,nnunet"
+            torch: "==2.0.1"
+            pins: '"torch==2.0.1" "numpy<2" "nnunetv2==2.1.2"'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -26,7 +31,7 @@ jobs:
       - name: Install (CPU torch)
         run: |
           python -m pip install --upgrade pip
-          pip install torch --index-url https://download.pytorch.org/whl/cpu
-          pip install -e ".[${{ matrix.extras }}]"
+          pip install "torch${{ matrix.torch }}" --index-url https://download.pytorch.org/whl/cpu
+          pip install -e ".[${{ matrix.extras }}]" ${{ matrix.pins }}
       - name: Test
         run: pytest -q

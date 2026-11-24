@@ -31,6 +31,11 @@ pip install "comploss[nnunet]"        # + nnU-Net v2 trainers
 pip install "comploss[fast-cc]"       # + faster connected components (cc3d)
 ```
 
+Tested with Python 3.10–3.12, torch 2.0.1–2.15 and nnU-Net v2 2.1.1–2.8 (CI runs the newest
+torch and the oldest supported versions). With torch older than 2.3, install `numpy<2`: those
+torch builds were compiled against numpy 1. nnU-Net v2 2.1 is not supported (its Dice+CE differs
+from later versions); the CATMIL paper used a fork of nnU-Net v2 2.1.1.
+
 From source (for development):
 
 ```bash
