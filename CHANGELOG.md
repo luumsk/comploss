@@ -3,13 +3,7 @@
 All notable changes to this project are documented here. Versions follow
 [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
-
-### Changed
-- `object_detection_metrics` and `lesion_detection_metrics` count objects of at most 150 voxels
-  as small by default (`small_voxels=150`, was 50), the threshold of the CATMIL paper.
-
-## [0.1.0]
+## [0.1.0] - 2026-11-24
 
 First release, extracted from the `catmil` package of
 [SmallLesionMRI](https://github.com/luumsk/SmallLesionMRI) (arXiv:2604.08015).
@@ -24,6 +18,8 @@ First release, extracted from the `catmil` package of
 - Object-level metrics: `object_detection_metrics`, `recall_by_size`, `object_table`,
   `object_size_profile`, `remove_small_components`. The `lesion_*` functions of `catmil` are kept
   as aliases and return lesion key names (`lesion_recall`, ...) with identical values.
+- `object_detection_metrics` and `lesion_detection_metrics` count objects of at most 150 voxels
+  as small by default (`small_voxels=150`), the threshold of the CATMIL paper.
 - `LabelComponents` / `LabelComponentsd` data-loader transforms.
 - nnU-Net v2 trainers for every loss and the `comploss nnunet` installer.
 - `comploss` command line (`losses`, `profile`, `bench`, `nnunet install | uninstall | status`).
