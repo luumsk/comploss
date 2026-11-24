@@ -30,6 +30,19 @@ def test_detection_matches_paper_script(seed):
     assert {k.replace("object", "lesion"): v for k, v in obj.items()}.keys() == new.keys()
 
 
+def test_default_small_threshold_is_paper_150():
+    gt = np.zeros((20, 20, 20), bool)
+    gt[2:7, 2:7, 2:6] = True      # 100 voxels: small at 150, not at 50
+    gt[12:14, 12:14, 12:14] = True
+    pred = np.zeros_like(gt)
+    pred[12, 12, 12] = True       # only the 8-voxel object is found
+    default = lesion_detection_metrics(gt, pred)
+    assert default["small_lesion_recall"] == 0.5
+    paper = ref.lesion_detection_metrics(gt, pred, (1.0, 1.0, 1.0), small_voxels_thresh=150)
+    assert math.isclose(default["small_lesion_recall"], paper["small_lesion_recall"], abs_tol=1e-6)
+    assert lesion_detection_metrics(gt, pred, small_voxels=50)["small_lesion_recall"] == 1.0
+
+
 def test_simple_case():
     gt = np.zeros((10, 10, 10), bool)
     gt[1, 1, 1] = True            # tiny object, missed

@@ -5,6 +5,10 @@ All notable changes to this project are documented here. Versions follow
 
 ## [Unreleased]
 
+### Changed
+- `object_detection_metrics` and `lesion_detection_metrics` count objects of at most 150 voxels
+  as small by default (`small_voxels=150`, was 50), the threshold of the CATMIL paper.
+
 ## [0.1.0]
 
 First release, extracted from the `catmil` package of

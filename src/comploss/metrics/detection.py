@@ -37,10 +37,10 @@ def _match(gt: np.ndarray, pred: np.ndarray, connectivity: int):
 
 
 def object_detection_metrics(gt: np.ndarray, pred: np.ndarray, spacing: Optional[Sequence[float]] = None,
-                             small_voxels: int = 50, connectivity: int = 1) -> Dict[str, float]:
+                             small_voxels: int = 150, connectivity: int = 1) -> Dict[str, float]:
     """Object counts, object precision / recall / F1, small-object recall, missed volume.
 
-    small_voxels : GT objects with at most this many voxels count as small (CATMIL paper: 50).
+    small_voxels : GT objects with at most this many voxels count as small (CATMIL paper: 150).
     spacing : voxel spacing (e.g. mm) for volumes (default 1 per axis).
     """
     gt, gt_lab, gt_n, _, pr_n, gt_hit, pr_hit = _match(gt, pred, connectivity)
@@ -73,7 +73,8 @@ def recall_by_size(gt: np.ndarray, pred: np.ndarray, bins: Sequence[Tuple[str, f
                    connectivity: int = 1) -> Dict[str, Dict[str, float]]:
     """Detected / total GT objects per size bin (upper bounds in voxels, inclusive).
 
-    Default bins as in the CATMIL paper: tiny <= 10, small <= 50, medium <= 200, large > 200 voxels.
+    Default bins: tiny <= 10, small <= 50, medium <= 200, large > 200 voxels. These describe the size
+    distribution only; the small-object threshold of `object_detection_metrics` is separate (150).
     """
     _, gt_lab, gt_n, _, _, gt_hit, _ = _match(gt, pred, connectivity)
     sizes = np.bincount(gt_lab.ravel(), minlength=gt_n + 1)[1:]
@@ -143,7 +144,7 @@ def _to_lesion_keys(d: dict) -> dict:
 
 
 def lesion_detection_metrics(gt: np.ndarray, pred: np.ndarray, spacing: Optional[Sequence[float]] = None,
-                             small_voxels: int = 50, connectivity: int = 1) -> Dict[str, float]:
+                             small_voxels: int = 150, connectivity: int = 1) -> Dict[str, float]:
     """``object_detection_metrics`` with lesion key names (``lesion_recall``, ``gt_lesion_count``, ...)."""
     return _to_lesion_keys(object_detection_metrics(gt, pred, spacing, small_voxels, connectivity))
 
