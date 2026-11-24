@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=64"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -7,7 +7,8 @@ name = "comploss"
 version = "0.1.0"
 description = "Component-aware loss functions and object-level metrics for segmenting small and multiple structures (CATMIL, CC-DiceCE, ...), with nnU-Net v2 and MONAI support."
 readme = "README.md"
-license = { text = "MIT" }
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [{ name = "Minh Sao Khue Luu" }]
 maintainers = [{ name = "Minh Sao Khue Luu" }]
 requires-python = ">=3.10"
@@ -15,7 +16,6 @@ dependencies = ["torch>=2.0", "numpy", "scipy"]
 keywords = ["segmentation", "loss function", "connected components", "small objects", "instance imbalance",
             "medical image segmentation", "nnU-Net", "pytorch"]
 classifiers = [
-  "License :: OSI Approved :: MIT License",
   "Programming Language :: Python :: 3",
   "Intended Audience :: Science/Research",
   "Topic :: Scientific/Engineering :: Artificial Intelligence",

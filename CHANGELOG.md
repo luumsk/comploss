@@ -3,6 +3,12 @@
 All notable changes to this project are documented here. Versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+- Packaging: the licence is an SPDX expression (`license = "MIT"`, `license-files`) instead of
+  the deprecated licence table and classifier; building now needs setuptools 77 or newer.
+
 ## [0.1.0] - 2026-11-24
 
 First release, extracted from the `catmil` package of
