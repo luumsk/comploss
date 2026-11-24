@@ -19,10 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
----
-
-The directory `slsseg/` contains a modified copy of nnU-Net
-(https://github.com/MIC-DKFZ/nnUNet), Copyright German Cancer Research Center
-(DKFZ), licensed under the Apache License, Version 2.0. Those files remain
-subject to the Apache License 2.0: https://www.apache.org/licenses/LICENSE-2.0
