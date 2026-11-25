@@ -18,5 +18,5 @@ from .losses import *  # noqa: F401,F403
 from .losses import __all__ as _losses_all
 from .transforms import LabelComponents, LabelComponentsd
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 __all__ = list(_losses_all) + ["LabelComponents", "LabelComponentsd", "label_components", "set_backend"]

@@ -2,7 +2,7 @@ cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 title: "comploss: component-aware loss functions and object-level metrics for segmentation"
 type: software
-version: 0.1.0
+version: 0.1.1
 license: MIT
 repository-code: "https://github.com/luumsk/comploss"
 authors:

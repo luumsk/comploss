@@ -5,7 +5,11 @@ All notable changes to this project are documented here. Versions follow
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-11-26
+
 ### Changed
+- `CATMILLoss` labels the ground-truth components once per output and shares them between the
+  CAT and MIL terms, instead of labelling them in each term. Loss values are unchanged.
 - Packaging: the licence is an SPDX expression (`license = "MIT"`, `license-files`) instead of
   the deprecated licence table and classifier; building now needs setuptools 77 or newer.
 - The `nnunet` extra needs nnU-Net v2 2.1.1 or newer (`nnunetv2>=2.1.1`). Version 2.1 computes
