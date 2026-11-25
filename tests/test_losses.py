@@ -85,6 +85,26 @@ def test_precomputed_components_match():
     assert d["label_cc"].shape == target[0].shape
 
 
+def test_catmil_labels_components_once(monkeypatch):
+    import comploss.components.labeling as labeling
+    logits, target = make_batch(2, 2, (16, 16, 16), seed=21)
+    loss = CATMILLoss(cat_warmup_epochs=0)
+    expected = (loss.base_loss(logits, target) + loss.lambda_cat * loss.cat_loss(logits, target)
+                + loss.lambda_mil * loss.mil_loss(logits, target))
+    calls = []
+    orig = labeling.label_components
+    monkeypatch.setattr(labeling, "label_components", lambda *a, **k: calls.append(1) or orig(*a, **k))
+    torch.testing.assert_close(loss(logits, target), expected)
+    assert len(calls) == 2  # one labelling per sample, shared by CAT and MIL
+    calls.clear()
+    outs, tgts = [logits, logits[:, :, ::2, ::2, ::2]], [target, target[:, :, ::2, ::2, ::2]]
+    CATMILLoss(cat_warmup_epochs=0, ds_mode="all", ds_weights=(1.0, 0.5))(outs, tgts)
+    assert len(calls) == 4  # once per sample and output
+    calls.clear()
+    CATMILLoss(cat_warmup_epochs=0, mil_kwargs={"connectivity": 3})(logits, target)
+    assert len(calls) == 4  # different connectivity: each term labels its own
+
+
 def test_autocast_bf16_no_nan():
     logits, target = make_batch(2, 2, (16, 16, 16), seed=14)
     x = logits.clone().requires_grad_(True)

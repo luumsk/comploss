@@ -7,7 +7,8 @@ from typing import Dict, Optional, Sequence, Union
 import torch
 import torch.nn as nn
 
-from .._utils import nnunet_ds_weights
+from ...components import label_batch
+from .._utils import binary_problems, nnunet_ds_weights
 from ..voxel.dice import DiceCELoss
 from .cat import ComponentAdaptiveTverskyLoss
 from .mil import ComponentMILLoss
@@ -35,6 +36,8 @@ class CATMILLoss(nn.Module):
     ``forward(outputs, targets, components=None, return_components=False)`` takes a tensor or a
     deep-supervision list. With ``return_components=True`` it returns a dict with ``loss`` (the
     differentiable total) and detached ``base``, ``cat``, ``mil``, ``lambda_cat`` for logging.
+    When both terms are active and share their target settings, the ground-truth components are
+    labelled once per output and passed to both terms; the loss value is unchanged.
     """
 
     def __init__(
@@ -78,8 +81,23 @@ class CATMILLoss(nn.Module):
             self.lambda_cat = float(t * self.lambda_cat_final)
         return self.lambda_cat
 
+    def _shared_components(self, out: torch.Tensor, tgt: torch.Tensor) -> Optional[torch.Tensor]:
+        """GT component labels (B, 1, *spatial) for both terms, or None if each labels its own."""
+        cat, mil = self.cat_loss, self.mil_loss
+        keys = ("connectivity", "mode", "class_ids", "activation", "ignore_index")
+        if any(getattr(cat, k) != getattr(mil, k) for k in keys):
+            return None
+        with torch.no_grad():
+            problems = binary_problems(out, tgt, activation=cat.activation, mode=cat.mode,
+                                       class_ids=cat.class_ids, ignore_index=cat.ignore_index)
+        if len(problems) != 1 or not bool(problems[0].fg.any()):
+            return None  # per-class problems label separately; empty patches skip labelling
+        return label_batch(problems[0].fg, cat.connectivity).unsqueeze(1)
+
     def _aux(self, out: torch.Tensor, tgt: torch.Tensor, components):
         zero = out.new_zeros((), dtype=torch.float32)
+        if components is None and self.lambda_cat > 0 and self.lambda_mil > 0:
+            components = self._shared_components(out, tgt)
         # lambda 0 (warm-up start): skip the term entirely, also avoids 0 * NaN
         cat = self.cat_loss(out, tgt, components) if self.lambda_cat > 0 else zero
         mil = self.mil_loss(out, tgt, components) if self.lambda_mil > 0 else zero
