@@ -183,7 +183,9 @@ research code. The parity tests compare values and gradients against them, again
 
 ## Citation
 
-If you use this package, please cite it (see [CITATION.cff](CITATION.cff)). If you use CATMIL,
+If you use this package, please cite it (see [CITATION.cff](CITATION.cff)):
+[doi:10.5281/zenodo.24590690](https://doi.org/10.5281/zenodo.24590690) covers all versions, and each
+release has its own DOI on Zenodo. If you use CATMIL,
 CAT or MIL, please also cite:
 
 ```bibtex

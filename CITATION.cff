@@ -4,6 +4,7 @@ title: "comploss: component-aware loss functions and object-level metrics for se
 type: software
 version: 0.1.1
 license: MIT
+doi: 10.5281/zenodo.24590690
 repository-code: "https://github.com/luumsk/comploss"
 authors:
   - family-names: Luu
